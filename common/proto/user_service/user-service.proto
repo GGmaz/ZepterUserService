@@ -1,0 +1,98 @@
+syntax="proto3";
+
+option go_package = "common/user";
+
+package user;
+
+import "google/api/annotations.proto";
+import "google/protobuf/wrappers.proto";
+
+service UserService{
+        rpc GetUser(GetUserRequest) returns(GetUserResponse) {
+        	option (google.api.http) = {
+            get: "/users/{id}"
+          };
+            }
+        rpc GetUserByUsername(GetUserByUsernameRequest) returns(GetUserByUsernameResponse) {
+              option (google.api.http) = {
+          get: "/users/{username}"
+        };
+        }
+        rpc UpdateUser(UpdateUserRequest) returns(UpdateUserResponse) {
+          option (google.api.http) = {
+          put: "/users"
+            body: "user"
+        };
+        }
+        rpc SearchUsers(SearchUsersRequest) returns(SearchUsersResponse) {
+          option (google.api.http) = {
+          get: "/users/search/country/{country}"
+        };
+        }
+        rpc CreateUser(CreateUserRequest) returns(CreateUserResponse) {
+          option (google.api.http) = {
+          post: "/users"
+            body: "user"
+          };
+        }
+
+        rpc ForgotPassword(ForgotPasswordRequest) returns(ForgotPasswordResponse) {
+          option (google.api.http) = {
+            put: "/user/password/{username}"
+            body: ""
+          };
+        }
+
+}
+
+
+message ForgotPasswordRequest {
+  string username = 1;
+}
+message ForgotPasswordResponse {
+}
+
+message GetUserRequest {
+        int64 id = 1;
+}
+message GetUserResponse {
+        User user = 1;
+}
+message GetUserByUsernameRequest {
+  string username = 1;
+}
+message GetUserByUsernameResponse {
+  User user = 1;
+}
+message UpdateUserRequest {
+  User user = 1;
+}
+message UpdateUserResponse {
+  int64 id = 1;
+}
+message SearchUsersRequest {
+  string country = 1;
+}
+message SearchUsersResponse {
+  repeated User users = 1;
+}
+message CreateUserRequest {
+  User user = 1;
+}
+message CreateUserResponse {
+  int64 id = 1;
+}
+
+
+message User {
+  int64 id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+  string username = 5;
+  string password = 6;
+  string country = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
