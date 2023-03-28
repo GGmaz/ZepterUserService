@@ -1,9 +1,11 @@
 package repo
 
 import (
-	"ZepterUserService/model"
+	"github.com/joho/godotenv"
+	"os"
 	"strings"
 	"time"
+	"zepter/model"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -16,8 +18,14 @@ type UserRepository struct {
 func New() (*UserRepository, error) {
 	repo := &UserRepository{}
 
-	//TODO: Change this to env variables
-	dsn := "host=userdb user=XML password=ftn dbname=XML_TEST port=5432 sslmode=disable"
+	godotenv.Load(".env")
+	host := os.Getenv("DB_HOST")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+
+	dsn := "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbname + " port=" + port + " sslmode=disable"
 	//dsn := "host=localhost user=XML password=ftn dbname=XML_TEST port=5432 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -41,61 +49,49 @@ func (repo *UserRepository) Close() error {
 
 func (repo *UserRepository) SearchUsers(username string) []model.User {
 	var users []model.User
-	repo.db.Preload("Interests").Preload("Experiences").Model(&users).Where("LOWER(user_name) LIKE ?", "%"+strings.ToLower(username)+"%").Find(&users)
+	repo.db.Model(&users).Where("LOWER(country) LIKE ?", "%"+strings.ToLower(username)+"%").Find(&users)
 	return users
 }
 
 func (repo *UserRepository) GetByID(id int) model.User {
 	var user model.User
-	repo.db.Preload("Interests").Preload("Experiences").Model(&user).Find(&user, id)
+	repo.db.Model(&user).Find(&user, id)
 	return user
 }
 
 func (repo *UserRepository) GetByUsername(username string) model.User {
 	var user model.User
-	repo.db.Preload("Interests").Preload("Experiences").Model(&user).Where("user_name  = ?", username).Find(&user)
+	repo.db.Model(&user).Where("username  = ?", username).Find(&user)
 	return user
 }
 
-func (repo *UserRepository) CreateUser(name string, email string, password string, username string, gender model.Gender, phonenumber string, dateofbirth time.Time, biography string, apiKey string) int {
+func (repo *UserRepository) CreateUser(firstName, email, password, username, lastName, country string) int {
 	user := model.User{
-		Name:        name,
-		Email:       email,
-		UserName:    username,
-		Password:    password,
-		Gender:      gender,
-		PhoneNumber: phonenumber,
-		DateOfBirth: dateofbirth,
-		Biography:   biography,
-		ApiKey:      apiKey,
+		FirstName: firstName,
+		Email:     email,
+		LastName:  lastName,
+		Country:   country,
+		Username:  username,
+		Password:  password,
+		CreatedAt: time.Now(),
 	}
 
-	if gender == "Male" || gender == "Female" {
-		repo.db.Create(&user)
-	} else {
-		user.ID = 0
-	}
+	repo.db.Create(&user)
+
 	return int(user.ID)
 }
 
-func (repo *UserRepository) UpdateUser(id uint, name string, email string, password string, username string, gender model.Gender, phonenumber string, dateofbirth time.Time, biography string, isPrivate, changedPass bool) int {
+func (repo *UserRepository) UpdateUser(id uint, firstName string, lastName string, country string, password string) int {
 	user := repo.GetByID(int(id))
-	if changedPass {
-		user.Forgotten = 0
-	}
-	user.Name = name
-	user.Password = password
-	user.Gender = gender
-	user.PhoneNumber = phonenumber
-	user.DateOfBirth = dateofbirth
-	user.Biography = biography
-	user.IsPrivate = isPrivate
 
-	if gender == "Male" || gender == "Female" {
-		repo.db.Save(&user)
-	} else {
-		user.ID = 0
-	}
+	user.FirstName = firstName
+	user.LastName = lastName
+	user.Password = password
+	user.Country = country
+	user.UpdatedAt = time.Now()
+
+	repo.db.Save(&user)
+
 	return int(user.ID)
 }
 

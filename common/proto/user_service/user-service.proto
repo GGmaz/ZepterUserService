@@ -5,7 +5,6 @@ option go_package = "common/user";
 package user;
 
 import "google/api/annotations.proto";
-import "google/protobuf/wrappers.proto";
 
 service UserService{
         rpc GetUser(GetUserRequest) returns(GetUserResponse) {
@@ -35,22 +34,8 @@ service UserService{
             body: "user"
           };
         }
-
-        rpc ForgotPassword(ForgotPasswordRequest) returns(ForgotPasswordResponse) {
-          option (google.api.http) = {
-            put: "/user/password/{username}"
-            body: ""
-          };
-        }
-
 }
 
-
-message ForgotPasswordRequest {
-  string username = 1;
-}
-message ForgotPasswordResponse {
-}
 
 message GetUserRequest {
         int64 id = 1;

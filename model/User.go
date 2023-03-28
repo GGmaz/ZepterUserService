@@ -11,6 +11,5 @@ type User struct {
 	Password  string    `json:"password" gorm:"not null"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	Forgotten int       `json:"forgotten"`
 	Country   string    `json:"country" gorm:"not null"`
 }

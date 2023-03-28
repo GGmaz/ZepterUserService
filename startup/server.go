@@ -1,15 +1,15 @@
 package startup
 
 import (
-	"ZepterUserService/handler_grpc"
-	"ZepterUserService/startup/config"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"zepter/handler_grpc"
+	"zepter/startup/config"
 
-	user "ZepterUserService/common/proto/user_service"
 	"google.golang.org/grpc"
+	user "zepter/common/proto/user_service"
 )
 
 type Server struct {

@@ -1,9 +1,9 @@
 package service
 
 import (
-	"ZepterUserService/model"
-	"ZepterUserService/repo"
-	"time"
+	"math/rand"
+	"zepter/model"
+	"zepter/repo"
 
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -27,20 +27,9 @@ func New() (*UserService, error) {
 	}, nil
 }
 
-func (s *UserService) SearchUsers(username string, id uint) []model.User {
-	users := s.userRepo.SearchUsers(username)
-	if id == 0 {
-		return users
-	}
-	blockedIds := s.userRepo.FindBlockedForUserId(id)
-	i := 0
-	for _, user := range users {
-		if !s.userRepo.Contains(blockedIds, user.ID) && user.ID != id {
-			users[i] = user
-			i++
-		}
-	}
-	users = users[:i]
+func (s *UserService) SearchUsers(country string) []model.User {
+	users := s.userRepo.SearchUsers(country)
+
 	return users
 }
 
@@ -52,30 +41,25 @@ func (s *UserService) GetByUsername(username string) model.User {
 	return s.userRepo.GetByUsername(username)
 }
 
-func (s *UserService) CreateUser(name string, email string, password string, username string, gender model.Gender, phonenumber string, dateofbirth time.Time, biography string) int {
+func (s *UserService) CreateUser(firstName, email, password, username, lastName, country string) int {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), 8)
-	return s.userRepo.CreateUser(name, email, string(hashedPassword), username, gender, phonenumber, dateofbirth, biography, string(apiKey))
+	return s.userRepo.CreateUser(firstName, email, string(hashedPassword), username, lastName, country)
 }
 
-func (s *UserService) UpdateUser(id uint, name string, email string, password string, username string, gender model.Gender, phonenumber string, dateofbirth time.Time, biography string, isPrivate bool) int {
+func (s *UserService) UpdateUser(id uint, firstName string, lastName string, country string, password string) int {
 	if password != s.GetByID(int(id)).Password {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), 8)
-		return s.userRepo.UpdateUser(id, name, email, string(hashedPassword), username, gender, phonenumber, dateofbirth, biography, isPrivate, true)
+		return s.userRepo.UpdateUser(id, firstName, lastName, country, string(hashedPassword))
 	}
-	return s.userRepo.UpdateUser(id, name, email, password, username, gender, phonenumber, dateofbirth, biography, isPrivate, false)
+	return s.userRepo.UpdateUser(id, firstName, lastName, country, password)
 }
 
-func (s *UserService) ForgotPassword(username string) int {
-	user := s.GetByUsername(username)
-	if user.ID == 0 {
-		return 0
-	}
-	newPass := GenerateRandomString(10)
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(newPass), 8)
-	user.Password = string(hashedPassword)
-	user.Forgotten = 1
-	s.userRepo.Save(user)
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-	SendActivationMail(user.Email, newPass, "")
-	return 1
+func GenerateRandomString(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }

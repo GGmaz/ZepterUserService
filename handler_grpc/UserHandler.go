@@ -1,14 +1,14 @@
 package handler_grpc
 
 import (
-	"ZepterUserService/service"
 	"context"
+	"zepter/service"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "ZepterUserService/common/proto/user_service"
 	log "github.com/sirupsen/logrus"
+	pb "zepter/common/proto/user_service"
 )
 
 type UserHandler struct {
@@ -37,7 +37,7 @@ func (handler *UserHandler) GetUser(ctx context.Context, request *pb.GetUserRequ
 		log.WithFields(log.Fields{"service_name": "user-service", "method_name": "GetUser", "user_id": id}).Warn("User with that id does not exist.")
 		return nil, err
 	}
-	userPb := mapUserDtoToProto(user)
+	userPb := mapUserToProto(user)
 	response := &pb.GetUserResponse{
 		User: userPb,
 	}
@@ -65,13 +65,12 @@ func (handler *UserHandler) GetUserByUsername(ctx context.Context, request *pb.G
 
 func (handler *UserHandler) UpdateUser(ctx context.Context, request *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
 	user := mapProtoToUser(request.User)
-	user.ID = GetUserID(ctx)
 	if handler.userService.GetByID(int(user.ID)).ID == 0 {
 		err := status.Error(codes.NotFound, "User with that id does not exist.")
 		log.WithFields(log.Fields{"service_name": "user-service", "method_name": "UpdateUser", "user_id": user.ID}).Warn("User with that id does not exist..")
 		return nil, err
 	}
-	id := handler.userService.UpdateUser(user.ID, user.Name, user.Email, user.Password, user.UserName, user.Gender, user.PhoneNumber, user.DateOfBirth, user.Biography, user.IsPrivate)
+	id := handler.userService.UpdateUser(user.ID, user.FirstName, user.LastName, user.Country, user.Password)
 	response := &pb.UpdateUserResponse{
 		Id: int64(id),
 	}
@@ -80,12 +79,12 @@ func (handler *UserHandler) UpdateUser(ctx context.Context, request *pb.UpdateUs
 	return response, nil
 }
 
+//TODO: paginated
 func (handler *UserHandler) SearchUsers(ctx context.Context, request *pb.SearchUsersRequest) (*pb.SearchUsersResponse, error) {
-	username := request.Username
-	loggedUserId := request.LoggedUserId
+	country := request.Country
 	var users []*pb.User
-	for _, user := range handler.userService.SearchUsers(username, uint(loggedUserId)) {
-		users = append(users, mapUserDtoToProto(user))
+	for _, user := range handler.userService.SearchUsers(country) {
+		users = append(users, mapUserToProto(user))
 	}
 	response := &pb.SearchUsersResponse{
 		Users: users,
@@ -95,26 +94,18 @@ func (handler *UserHandler) SearchUsers(ctx context.Context, request *pb.SearchU
 
 func (handler *UserHandler) CreateUser(ctx context.Context, request *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	user := mapProtoToUser(request.User)
-	id := handler.userService.CreateUser(user.Name, user.Email, user.Password, user.UserName, user.Gender, user.PhoneNumber, user.DateOfBirth, user.Biography)
+	id := handler.userService.CreateUser(user.FirstName, user.Email, user.Password, user.Username, user.LastName, user.Country)
 	if id == 0 {
 		err := status.Error(codes.AlreadyExists, "User with same username or email already exists.")
-		log.WithFields(log.Fields{"service_name": "user-service", "method_name": "CreateUser", "username": user.UserName}).Warn("User with same username or email already exists.")
+		log.WithFields(log.Fields{"service_name": "user-service", "method_name": "CreateUser", "username": user.Username}).Warn("User with same username or email already exists.")
 		return nil, err
 	}
-	response := &pb.CreateUserResponse{}
+	response := &pb.CreateUserResponse{
+		Id: int64(id),
+	}
 
-	log.WithFields(log.Fields{"service_name": "user-service", "method_name": "CreateUser", "username": user.UserName}).Info("User successfully created.")
+	log.WithFields(log.Fields{"service_name": "user-service", "method_name": "CreateUser", "username": user.Username}).Info("User successfully created.")
 	return response, nil
 }
 
-func (handler *UserHandler) ForgotPassword(ctx context.Context, request *pb.ForgotPasswordRequest) (*pb.ForgotPasswordResponse, error) {
-	i := handler.userService.ForgotPassword(request.Username)
-	if i == 0 {
-		err := status.Error(codes.InvalidArgument, "User with that username does not exist.")
-		log.WithFields(log.Fields{"service_name": "user-service", "method_name": "ForgotPassword", "username": request.Username}).Warn("User with that username does not exist.")
-		return nil, err
-	}
-	response := &pb.ForgotPasswordResponse{}
-	log.WithFields(log.Fields{"service_name": "user-service", "method_name": "ForgotPassword", "username": request.Username}).Info("Temporary password successfully created.")
-	return response, nil
-}
+//TODO: Delete user
