@@ -1,8 +1,8 @@
 package main
 
 import (
-	"ZepterUserService/startup"
-	cfg "ZepterUserService/startup/config"
+	"zepter/startup"
+	cfg "zepter/startup/config"
 )
 
 func main() {
