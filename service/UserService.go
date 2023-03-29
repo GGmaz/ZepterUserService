@@ -27,8 +27,15 @@ func New() (*UserService, error) {
 	}, nil
 }
 
-func (s *UserService) SearchUsers(country string) []model.User {
-	users := s.userRepo.SearchUsers(country)
+func (s *UserService) SearchUsers(country string, page, limit int) []model.User {
+	if page < 1 {
+		page = 1
+	}
+
+	if limit < 1 {
+		limit = 10
+	}
+	users := s.userRepo.SearchUsers(country, page, limit)
 
 	return users
 }

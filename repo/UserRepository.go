@@ -47,9 +47,16 @@ func (repo *UserRepository) Close() error {
 	return nil
 }
 
-func (repo *UserRepository) SearchUsers(username string) []model.User {
+func (repo *UserRepository) SearchUsers(country string, page, limit int) []model.User {
+	offset := (page - 1) * limit
 	var users []model.User
-	repo.db.Model(&users).Where("LOWER(country) LIKE ?", "%"+strings.ToLower(username)+"%").Find(&users)
+
+	repo.db.Model(&users).
+		Where("LOWER(country) LIKE ?", "%"+strings.ToLower(country)+"%").
+		Limit(limit).
+		Offset(offset).
+		Find(&users)
+
 	return users
 }
 

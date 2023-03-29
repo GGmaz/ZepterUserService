@@ -79,11 +79,13 @@ func (handler *UserHandler) UpdateUser(ctx context.Context, request *pb.UpdateUs
 	return response, nil
 }
 
-//TODO: paginated
+// TODO: paginated
 func (handler *UserHandler) SearchUsers(ctx context.Context, request *pb.SearchUsersRequest) (*pb.SearchUsersResponse, error) {
 	country := request.Country
+	page := int(request.Page)
+	limit := int(request.Limit)
 	var users []*pb.User
-	for _, user := range handler.userService.SearchUsers(country) {
+	for _, user := range handler.userService.SearchUsers(country, page, limit) {
 		users = append(users, mapUserToProto(user))
 	}
 	response := &pb.SearchUsersResponse{
