@@ -54,6 +54,11 @@ func (s *UserService) UpdateUser(id uint, firstName string, lastName string, cou
 	return s.userRepo.UpdateUser(id, firstName, lastName, country, password)
 }
 
+func (s *UserService) DeleteUser(id int) {
+	s.userRepo.Delete(id)
+	return
+}
+
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func GenerateRandomString(n int) string {

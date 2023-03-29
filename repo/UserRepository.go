@@ -107,3 +107,7 @@ func (repo *UserRepository) Contains(elems []uint, v uint) bool {
 func (repo *UserRepository) Save(user model.User) {
 	repo.db.Save(&user)
 }
+
+func (repo *UserRepository) Delete(id int) {
+	repo.db.Delete(&model.User{}, id)
+}

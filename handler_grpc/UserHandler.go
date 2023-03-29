@@ -108,4 +108,15 @@ func (handler *UserHandler) CreateUser(ctx context.Context, request *pb.CreateUs
 	return response, nil
 }
 
-//TODO: Delete user
+func (handler *UserHandler) DeleteUser(ctx context.Context, request *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+	id := request.Id
+	if handler.userService.GetByID(int(id)).ID == 0 {
+		err := status.Error(codes.NotFound, "User with that id does not exist.")
+		log.WithFields(log.Fields{"service_name": "user-service", "method_name": "UpdateUser", "user_id": id}).Warn("User with that id does not exist..")
+		return nil, err
+	}
+	handler.userService.DeleteUser(int(id))
+	response := &pb.DeleteUserResponse{}
+	log.WithFields(log.Fields{"service_name": "user-service", "method_name": "Delete", "user_id": id}).Info("User successfully removed.")
+	return response, nil
+}
