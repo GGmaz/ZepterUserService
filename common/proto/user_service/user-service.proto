@@ -34,6 +34,11 @@ service UserService{
             body: "user"
           };
         }
+        rpc DeleteUser(DeleteUserRequest) returns(DeleteUserResponse) {
+          option (google.api.http) = {
+            delete: "/users/{id}"
+          };
+        }
 }
 
 
@@ -66,6 +71,11 @@ message CreateUserRequest {
 }
 message CreateUserResponse {
   int64 id = 1;
+}
+message DeleteUserRequest {
+  int64 id = 1;
+}
+message DeleteUserResponse {
 }
 
 
